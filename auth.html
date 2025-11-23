@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Account | Motion Made</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Promo Banner -->
+  <div class="promo-banner">
+    <div class="promo-track">
+      <span>Members Club · Priority Access · Saved Fits · Tailored Suggestions ·</span>
+      <span>Members Club · Priority Access · Saved Fits · Tailored Suggestions ·</span>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="index.html" class="brand">
+        <div class="brand-mark">MM</div>
+        <div class="brand-text">
+          <span class="brand-name">Motion Made</span>
+          <span class="brand-tag">Athletic Dresswear</span>
+        </div>
+      </a>
+
+      <nav class="main-nav">
+        <a href="index.html">Home</a>
+        <a href="catalog.html">Catalog</a>
+        <a href="auth.html" class="active">Account</a>
+      </nav>
+
+      <div class="header-actions">
+        <a href="catalog.html" class="btn-outline-small">Shop</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="auth-section">
+      <div class="auth-intro">
+        <p class="eyebrow">Members</p>
+        <h1>Motion Made Account</h1>
+        <p class="auth-intro-text">
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus congue neque elit, sed viverra augue fermentum vitae.
+        </p>
+        <ul class="auth-benefits">
+          <li>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</li>
+          <li>Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</li>
+          <li>Ut enim ad minim veniam, quis nostrud exercitation ullamco.</li>
+        </ul>
+      </div>
+
+      <div class="auth-panel">
+        <div class="auth-toggle">
+          <button class="auth-tab active" id="tabSignIn">Sign In</button>
+          <button class="auth-tab" id="tabSignUp">Create Account</button>
+        </div>
+
+        <!-- Sign In -->
+        <form id="signInForm" class="auth-form">
+          <label>
+            Email
+            <input type="email" id="signInEmail" placeholder="you@example.com" required />
+          </label>
+          <label>
+            Password
+            <input type="password" id="signInPassword" placeholder="••••••••" required />
+          </label>
+          <button type="submit" class="btn-primary full-width">Sign In</button>
+        </form>
+
+        <!-- Sign Up -->
+        <form id="signUpForm" class="auth-form hidden">
+          <label>
+            Full Name
+            <input type="text" id="signUpName" placeholder="First Last" required />
+          </label>
+          <label>
+            Email
+            <input type="email" id="signUpEmail" placeholder="you@example.com" required />
+          </label>
+          <label>
+            Password
+            <input type="password" id="signUpPassword" placeholder="Create a password" required />
+          </label>
+          <button type="submit" class="btn-primary full-width">Create Account</button>
+        </form>
+
+        <div id="authStatus" class="auth-status"></div>
+        <button id="btnSignOut" class="btn-ghost full-width hidden">Sign Out</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Firebase & Auth Logic -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getAuth,
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword,
+      signOut,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    // TODO: Replace with your Firebase project config
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const tabSignIn = document.getElementById("tabSignIn");
+    const tabSignUp = document.getElementById("tabSignUp");
+    const signInForm = document.getElementById("signInForm");
+    const signUpForm = document.getElementById("signUpForm");
+    const authStatus = document.getElementById("authStatus");
+    const btnSignOut = document.getElementById("btnSignOut");
+
+    function showStatus(message, isError = false) {
+      authStatus.textContent = message;
+      authStatus.classList.toggle("error", isError);
+    }
+
+    function switchTo(tab) {
+      if (tab === "signin") {
+        tabSignIn.classList.add("active");
+        tabSignUp.classList.remove("active");
+        signInForm.classList.remove("hidden");
+        signUpForm.classList.add("hidden");
+        showStatus("");
+      } else {
+        tabSignUp.classList.add("active");
+        tabSignIn.classList.remove("active");
+        signUpForm.classList.remove("hidden");
+        signInForm.classList.add("hidden");
+        showStatus("");
+      }
+    }
+
+    tabSignIn.addEventListener("click", () => switchTo("signin"));
+    tabSignUp.addEventListener("click", () => switchTo("signup"));
+
+    // Sign Up
+    signUpForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("signUpEmail").value.trim();
+      const password = document.getElementById("signUpPassword").value.trim();
+
+      try {
+        await createUserWithEmailAndPassword(auth, email, password);
+        showStatus("Account created. You are now signed in.");
+        switchTo("signin");
+      } catch (error) {
+        console.error(error);
+        showStatus(error.message || "Unable to create account.", true);
+      }
+    });
+
+    // Sign In
+    signInForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("signInEmail").value.trim();
+      const password = document.getElementById("signInPassword").value.trim();
+
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        showStatus("Signed in successfully.");
+      } catch (error) {
+        console.error(error);
+        showStatus(error.message || "Unable to sign in.", true);
+      }
+    });
+
+    // Sign Out
+    btnSignOut.addEventListener("click", async () => {
+      try {
+        await signOut(auth);
+        showStatus("Signed out.");
+      } catch (error) {
+        console.error(error);
+        showStatus("Unable to sign out.", true);
+      }
+    });
+
+    // Listen for auth state changes
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        btnSignOut.classList.remove("hidden");
+        showStatus("You are signed in.");
+      } else {
+        btnSignOut.classList.add("hidden");
+        if (!authStatus.classList.contains("error")) {
+          showStatus("");
+        }
+      }
+    });
+  </script>
+</body>
+</html>
